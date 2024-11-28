@@ -1,13 +1,13 @@
--- Services
+-- source.lua
+
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
-local LocalPlayer = game:GetService("Players").LocalPlayer
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 local Mouse = LocalPlayer:GetMouse()
-local HttpService = game:GetService("HttpService")
 
--- Library Structure
-local YourLib = {
+local CustomUILibrary = {
     Elements = {},
     ThemeObjects = {},
     Connections = {},
@@ -23,179 +23,93 @@ local YourLib = {
         }
     },
     SelectedTheme = "Default",
-    Folder = nil,
-    SaveCfg = false
+    SaveCfg = false,
+    ConfigFolder = "CustomUILibraryConfigs"
 }
 
--- Window Creation
-function YourLib:MakeWindow(options)
-    local Window = Instance.new("ScreenGui")
-    Window.Name = options.Name or "YourWindow"
-    Window.Parent = game.CoreGui
-    Window.ResetOnSpawn = false
+-- Helper function to create UI components
+local function CreateUIComponent(Type, Parent, Properties)
+    local component = Instance.new(Type)
+    for prop, value in pairs(Properties) do
+        component[prop] = value
+    end
+    component.Parent = Parent
+    return component
+end
 
-    local MainFrame = Instance.new("Frame")
-    MainFrame.Size = UDim2.new(0, 600, 0, 400)
-    MainFrame.Position = UDim2.new(0.5, -300, 0.5, -200)
-    MainFrame.BackgroundColor3 = self.Themes[self.SelectedTheme].Main
-    MainFrame.BorderSizePixel = 0
-    MainFrame.Parent = Window
+-- MakeWindow Function
+function CustomUILibrary:MakeWindow(Options)
+    local Window = Instance.new("Frame")
+    Window.Name = Options.Name or "Custom Window"
+    Window.Size = UDim2.new(0, 400, 0, 300)
+    Window.Position = UDim2.new(0.5, -200, 0.5, -150)
+    Window.AnchorPoint = Vector2.new(0.5, 0.5)
+    Window.BackgroundColor3 = self.Themes[self.SelectedTheme].Main
+    Window.Visible = true
 
-    -- Title
-    local Title = Instance.new("TextLabel")
-    Title.Text = options.Name or "Your Custom UI"
-    Title.Size = UDim2.new(1, 0, 0, 30)
-    Title.BackgroundTransparency = 1
-    Title.TextColor3 = self.Themes[self.SelectedTheme].Text
-    Title.TextSize = 24
-    Title.Font = Enum.Font.GothamBold
-    Title.Parent = MainFrame
+    -- Title Bar
+    local TitleBar = CreateUIComponent("TextLabel", Window, {
+        Text = Options.Name,
+        Size = UDim2.new(1, 0, 0, 30),
+        BackgroundColor3 = self.Themes[self.SelectedTheme].Second,
+        TextColor3 = self.Themes[self.SelectedTheme].Text,
+        TextScaled = true,
+        TextAlign = Enum.TextAnchor.MiddleCenter
+    })
 
-    -- Drag functionality
-    local dragging = false
-    local dragStart, startPos
-    local function updateInput(input)
-        if dragging then
-            local delta = input.Position - dragStart
-            MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
+    -- Save configuration if enabled
+    if Options.SaveConfig then
+        -- Add save/load functionality here (could use JSON, DataStore, etc.)
     end
 
-    Title.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startPos = MainFrame.Position
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging = false
-                end
-            end)
-        end
-    end)
-
-    UserInputService.InputChanged:Connect(updateInput)
-
-    -- Close Button
-    local CloseButton = Instance.new("TextButton")
-    CloseButton.Text = "X"
-    CloseButton.Size = UDim2.new(0, 30, 0, 30)
-    CloseButton.Position = UDim2.new(1, -40, 0, 5)
-    CloseButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
-    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    CloseButton.Font = Enum.Font.GothamBold
-    CloseButton.TextSize = 18
-    CloseButton.Parent = MainFrame
-    CloseButton.MouseButton1Click:Connect(function()
-        Window:Destroy()
-    end)
-
+    self.Elements[Window.Name] = Window
     return Window
 end
 
--- Tab Creation
-function YourLib:MakeTab(options)
+-- MakeTab Function
+function CustomUILibrary:MakeTab(Options)
     local Tab = Instance.new("Frame")
-    Tab.Name = options.Name
-    Tab.Size = UDim2.new(1, 0, 0, 50)
+    Tab.Size = UDim2.new(0, 380, 0, 220)
     Tab.BackgroundColor3 = self.Themes[self.SelectedTheme].Second
-    Tab.BorderSizePixel = 0
-    Tab.Parent = self.Elements.MainFrame
+    Tab.Position = UDim2.new(0.5, -190, 0.5, -110)
 
-    local TabLabel = Instance.new("TextLabel")
-    TabLabel.Text = options.Name
-    TabLabel.Size = UDim2.new(0, 150, 0, 50)
-    TabLabel.BackgroundTransparency = 1
-    TabLabel.TextColor3 = self.Themes[self.SelectedTheme].Text
-    TabLabel.TextSize = 20
-    TabLabel.Font = Enum.Font.GothamBold
-    TabLabel.Parent = Tab
+    -- Tab Title
+    local TabTitle = CreateUIComponent("TextLabel", Tab, {
+        Text = Options.Name,
+        Size = UDim2.new(1, 0, 0, 30),
+        BackgroundColor3 = self.Themes[self.SelectedTheme].Stroke,
+        TextColor3 = self.Themes[self.SelectedTheme].Text,
+        TextScaled = true,
+        TextAlign = Enum.TextAnchor.MiddleCenter
+    })
 
-    local Section = self:AddSection(Tab, options.Name)
-    return Section
+    self.Elements[Tab.Name] = Tab
+    return Tab
 end
 
--- Section Creation
-function YourLib:AddSection(tab, name)
-    local Section = Instance.new("Frame")
-    Section.Name = name
-    Section.Size = UDim2.new(1, 0, 0, 200)
-    Section.Position = UDim2.new(0, 0, 0, 50)
-    Section.BackgroundColor3 = self.Themes[self.SelectedTheme].Second
-    Section.BorderSizePixel = 0
-    Section.Parent = tab
-
-    return Section
-end
-
--- Button Creation
-function YourLib:AddButton(options)
+-- Function to allow users to easily create buttons
+function CustomUILibrary:AddButton(Window, ButtonName, Callback)
     local Button = Instance.new("TextButton")
+    Button.Parent = Window
     Button.Size = UDim2.new(0, 200, 0, 50)
+    Button.Position = UDim2.new(0, 0, 0, 40)
+    Button.Text = ButtonName
     Button.BackgroundColor3 = self.Themes[self.SelectedTheme].Stroke
-    Button.Text = options.Name
     Button.TextColor3 = self.Themes[self.SelectedTheme].Text
-    Button.TextSize = 18
-    Button.Font = Enum.Font.GothamBold
-    Button.Parent = options.Parent
+    Button.TextScaled = true
 
     Button.MouseButton1Click:Connect(function()
-        if options.Callback then
-            options.Callback()
-        end
+        Callback()
     end)
 
+    table.insert(self.Elements, Button)
     return Button
 end
 
--- Toggle Creation
-function YourLib:AddToggle(options)
-    local Toggle = Instance.new("TextButton")
-    Toggle.Size = UDim2.new(0, 200, 0, 50)
-    Toggle.BackgroundColor3 = self.Themes[self.SelectedTheme].Stroke
-    Toggle.Text = options.Name
-    Toggle.TextColor3 = self.Themes[self.SelectedTheme].Text
-    Toggle.TextSize = 18
-    Toggle.Font = Enum.Font.GothamBold
-    Toggle.Parent = options.Parent
-
-    local isActive = options.Default or false
-    Toggle.MouseButton1Click:Connect(function()
-        isActive = not isActive
-        if options.Callback then
-            options.Callback(isActive)
-        end
-    end)
-
-    return Toggle
+-- Function to initialize the library
+function CustomUILibrary:Init()
+    -- Any additional setup if needed
 end
 
--- Initializing the UI
-function YourLib:Init()
-    -- Custom initialization logic goes here
-    print("YourLib UI Initialized!")
-end
-
--- Example Usage
-local Window = YourLib:MakeWindow({Name = "My Custom UI"})
-local Tab = YourLib:MakeTab({Name = "Tab 1"})
-local Section = YourLib:AddSection(Tab, "Section 1")
-
-YourLib:AddButton({
-    Name = "Click Me",
-    Parent = Section,
-    Callback = function()
-        print("Button Clicked!")
-    end
-})
-
-YourLib:AddToggle({
-    Name = "Enable Something",
-    Default = false,
-    Parent = Section,
-    Callback = function(state)
-        print("Toggle State:", state)
-    end
-})
-
-YourLib:Init()
+-- Return the library so it can be accessed by users
+return CustomUILibrary
