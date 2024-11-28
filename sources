@@ -1,0 +1,125 @@
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+local EclipseLib = {}
+EclipseLib.__index = EclipseLib
+
+-- Function to create a UI element
+local function createElement(class, properties)
+    local element = Instance.new(class)
+    for prop, value in pairs(properties) do
+        element[prop] = value
+    end
+    return element
+end
+
+-- Smoothly tween a property
+local function tween(object, properties, duration)
+    local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local tween = TweenService:Create(object, tweenInfo, properties)
+    tween:Play()
+    return tween
+end
+
+-- Create the main window
+function EclipseLib:MakeWindow(config)
+    local self = setmetatable({}, EclipseLib)
+    self.Visible = true
+
+    local screenGui = createElement("ScreenGui", {
+        Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui"),
+        Name = config.Name or "EclipseHub"
+    })
+
+    local windowFrame = createElement("Frame", {
+        Parent = screenGui,
+        Size = UDim2.new(0, 400, 0, 300),
+        Position = UDim2.new(0.5, -200, 0.5, -150),
+        BackgroundColor3 = Color3.fromRGB(32, 32, 32),
+        BorderSizePixel = 0,
+        AnchorPoint = Vector2.new(0.5, 0.5)
+    })
+
+    createElement("UICorner", { Parent = windowFrame })
+
+    local titleBar = createElement("TextLabel", {
+        Parent = windowFrame,
+        Size = UDim2.new(1, 0, 0, 30),
+        BackgroundColor3 = Color3.fromRGB(45, 45, 45),
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        Text = config.Name or "EclipseHub",
+        Font = Enum.Font.SourceSansBold,
+        TextSize = 20,
+        BorderSizePixel = 0
+    })
+
+    createElement("UICorner", { Parent = titleBar })
+
+    -- Store elements for later use
+    self.Window = windowFrame
+    self.Tabs = {}
+    self.ScreenGui = screenGui
+
+    -- Handle toggling visibility
+    function self:ToggleVisibility(state)
+        if state ~= nil then
+            self.Visible = state
+        else
+            self.Visible = not self.Visible
+        end
+        local newTransparency = self.Visible and 0 or 1
+        tween(windowFrame, { BackgroundTransparency = newTransparency }, 0.3)
+        tween(titleBar, { BackgroundTransparency = newTransparency, TextTransparency = newTransparency }, 0.3)
+    end
+
+    return self
+end
+
+-- Add a tab
+function EclipseLib:MakeTab(config)
+    local tab = {
+        Name = config.Name,
+        Buttons = {},
+        Toggles = {},
+        Sliders = {}
+    }
+
+    -- Tab creation can go here
+    -- Add buttons, toggles, sliders, etc.
+
+    table.insert(self.Tabs, tab)
+    return tab
+end
+
+-- Example: Add a button to a tab
+function EclipseLib:AddButton(config)
+    local button = createElement("TextButton", {
+        Parent = self.Window,
+        Text = config.Name or "Button",
+        Size = UDim2.new(0, 200, 0, 50),
+        BackgroundColor3 = Color3.fromRGB(50, 50, 50),
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        BorderSizePixel = 0
+    })
+
+    createElement("UICorner", { Parent = button })
+
+    button.MouseButton1Click:Connect(function()
+        if config.Callback then
+            config.Callback()
+        end
+    end)
+
+    -- Add button animations
+    button.MouseEnter:Connect(function()
+        tween(button, { BackgroundColor3 = Color3.fromRGB(70, 70, 70) }, 0.2)
+    end)
+
+    button.MouseLeave:Connect(function()
+        tween(button, { BackgroundColor3 = Color3.fromRGB(50, 50, 50) }, 0.2)
+    end)
+
+    return button
+end
+
+return EclipseLib
