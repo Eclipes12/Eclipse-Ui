@@ -1,4 +1,5 @@
 -- EclipseLib.lua
+
 local EclipseLib = {}
 
 -- Initialize the Elements table if it doesn't exist
@@ -25,13 +26,19 @@ function EclipseLib:MakeWindow(config)
 
     -- Intro Panel (Loading screen with text and icon)
     local IntroPanel = self:CreateElement("Frame", {
-        Name = "IntroPanel",
         Size = UDim2.new(0, 600, 0, 100),
         Position = UDim2.new(0.5, -300, 0.5, -50),
         BackgroundColor3 = Color3.fromRGB(30, 30, 30),
         BorderSizePixel = 0,
         AnchorPoint = Vector2.new(0.5, 0.5),
+        BackgroundTransparency = 0.5, -- Set background transparency
         Parent = screenGui,
+    })
+
+    -- Add rounded corners to the IntroPanel
+    local introCorner = self:CreateElement("UICorner", {
+        CornerRadius = UDim.new(0, 11),
+        Parent = IntroPanel,
     })
 
     -- Icon for the Intro Panel
@@ -47,11 +54,11 @@ function EclipseLib:MakeWindow(config)
     local IntroTextLabel = self:CreateElement("TextLabel", {
         Text = config.IntroText,
         Size = UDim2.new(0, 500, 0, 50),
-        Position = UDim2.new(0, 70, 0, 25),
+        Position = UDim2.new(0.5, -250, 0.5, -25), -- Centered in the middle of the screen
         BackgroundTransparency = 1,
         TextColor3 = Color3.fromRGB(255, 255, 255),
         TextSize = 24,
-        TextXAlignment = Enum.TextXAlignment.Left,
+        TextXAlignment = Enum.TextXAlignment.Center,
         TextYAlignment = Enum.TextYAlignment.Center,
         Font = Enum.Font.Gotham,
         Parent = IntroPanel,
@@ -76,20 +83,25 @@ function EclipseLib:MakeWindow(config)
 
     -- Create the main window frame
     local Window = self:CreateElement("Frame", {
-        Name = "Window",
-        Size = UDim2.new(0, 498, 0, 373),
-        Position = UDim2.new(0.313, 0, 0.270, 0),
-        BackgroundColor3 = Color3.fromRGB(29, 40, 255),
-        BackgroundTransparency = 0.7,
+        Size = UDim2.new(0, 800, 0, 500),
+        Position = UDim2.new(0.5, -400, 0.5, -250),
+        BackgroundColor3 = Color3.fromRGB(30, 30, 30),
         BorderSizePixel = 0,
-        Parent = screenGui,
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        BackgroundTransparency = 0.3, -- Make the window semi-transparent
+        Parent = screenGui,  -- Parent the window to the screenGui
+    })
+
+    -- Add rounded corners to the window
+    local windowCorner = self:CreateElement("UICorner", {
+        CornerRadius = UDim.new(0, 11),
+        Parent = Window,
     })
 
     -- Create the panel that holds the title and close button
     local Panel = self:CreateElement("Frame", {
-        Size = UDim2.new(1, 0, 0, 46),
-        BackgroundColor3 = Color3.fromRGB(29, 40, 255),
-        BackgroundTransparency = 0.8,
+        Size = UDim2.new(1, 0, 0, 50),
+        BackgroundColor3 = Color3.fromRGB(40, 40, 40),
         BorderSizePixel = 0,
         Parent = Window,
     })
@@ -97,23 +109,24 @@ function EclipseLib:MakeWindow(config)
     -- Title label on the left side
     local Title = self:CreateElement("TextLabel", {
         Text = config.Name,
-        Size = UDim2.new(0, 143, 0, 46),
+        Size = UDim2.new(0, 500, 0, 50),
+        Position = UDim2.new(0, 10, 0, 0),
         BackgroundTransparency = 1,
         TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 14,
+        TextSize = 24,
         TextXAlignment = Enum.TextXAlignment.Left,
-        Font = Enum.Font.SourceSansBold,
+        Font = Enum.Font.GothamBold,
         Parent = Panel,
     })
 
     -- Close button (X) on the right side
     local CloseButton = self:CreateElement("TextButton", {
-        Size = UDim2.new(0, 55, 0, 46),
+        Size = UDim2.new(0, 50, 0, 50),
         Position = UDim2.new(1, -60, 0, 0),
         Text = "X",
-        BackgroundColor3 = Color3.fromRGB(255, 0, 0),
-        TextColor3 = Color3.fromRGB(248, 248, 248),
-        TextSize = 14,
+        BackgroundColor3 = Color3.fromRGB(200, 0, 0),
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        TextSize = 18,
         BorderSizePixel = 0,
         Parent = Panel,
     })
@@ -126,95 +139,79 @@ function EclipseLib:MakeWindow(config)
         Window:Destroy()  -- Close the window when clicked
     end)
 
-    -- Left Side Panel
-    local LeftSidePanel = self:CreateElement("Frame", {
-        Size = UDim2.new(0, 135, 0, 311),
-        Position = UDim2.new(0.016, 0, 0.147, 0),
-        BackgroundColor3 = Color3.fromRGB(29, 40, 255),
-        BackgroundTransparency = 0.7,
+    -- Dragging functionality
+    local dragging = false
+    local dragInput, dragStart, startPos
+
+    -- When the user clicks the title panel, start the dragging
+    Panel.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = Window.Position
+        end
+    end)
+
+    -- When the user moves the mouse, move the window
+    Panel.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            Window.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+
+    -- When the user releases the mouse button, stop dragging
+    Panel.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+    -- Create the sidebar to hold tabs
+    local Sidebar = self:CreateElement("Frame", {
+        Size = UDim2.new(0, 200, 1, 0),
+        Position = UDim2.new(0, 0, 0, 0),
+        BackgroundColor3 = Color3.fromRGB(40, 40, 40),
         BorderSizePixel = 0,
         Parent = Window,
     })
 
-    -- Tab Button
-    local TabButton = self:CreateElement("TextButton", {
-        Size = UDim2.new(0, 99, 0, 39),
-        Position = UDim2.new(0.2667, 0, 0.035, 0),
-        Text = "Tab",
-        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        BackgroundTransparency = 0.7,
-        TextColor3 = Color3.fromRGB(0, 0, 0),
-        TextSize = 14,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Font = Enum.Font.SourceSansBold,
-        Parent = LeftSidePanel,
+    -- Add rounded corners to the Sidebar
+    local sidebarCorner = self:CreateElement("UICorner", {
+        CornerRadius = UDim.new(0, 11),
+        Parent = Sidebar,
     })
 
-    -- Tab Icon
-    local TabIcon = self:CreateElement("ImageLabel", {
-        Size = UDim2.new(0, 36, 0, 39),
-        Position = UDim2.new(-0.3636, 0, 0, 0),
-        Image = "rbxasset://textures/ui/GuiImagePlaceholder.png",
-        BackgroundTransparency = 1,
-        Parent = TabButton,
-    })
+    -- Store the sidebar element
+    EclipseLib.Elements.Sidebar = Sidebar
 
-    -- Main Panel for Buttons
-    local MainPanel = self:CreateElement("Frame", {
-        Size = UDim2.new(0, 338, 0, 311),
-        Position = UDim2.new(0.303, 0, 0.147, 0),
-        BackgroundColor3 = Color3.fromRGB(29, 40, 255),
-        BackgroundTransparency = 0.7,
+    -- Example Tab creation
+    local Tab = self:CreateElement("Frame", {
+        Size = UDim2.new(1, 0, 0, 50),
+        Position = UDim2.new(0, 0, 0, 50),
+        BackgroundColor3 = Color3.fromRGB(60, 60, 60),
         BorderSizePixel = 0,
-        Parent = Window,
+        Parent = Sidebar,
     })
 
-    -- Button in Main Panel
-    local Button = self:CreateElement("TextButton", {
-        Size = UDim2.new(0, 324, 0, 39),
-        Position = UDim2.new(0.020, 0, 0.035, 0),
-        Text = "Tab",
-        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        BackgroundTransparency = 0.7,
-        TextColor3 = Color3.fromRGB(0, 0, 0),
-        TextSize = 14,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Font = Enum.Font.SourceSansBold,
-        Parent = MainPanel,
-    })
-
-    -- Button Icon
-    local ButtonIcon = self:CreateElement("ImageLabel", {
-        Size = UDim2.new(0, 39, 0, 39),
-        Position = UDim2.new(0.8779, 0, 0, 0),
-        Image = "rbxasset://textures/ui/GuiImagePlaceholder.png",
-        BackgroundTransparency = 1,
-        Parent = Button,
-    })
-
-    -- Profile Image
-    local RobloxProfile = self:CreateElement("ImageLabel", {
-        Size = UDim2.new(0, 36, 0, 39),
-        Position = UDim2.new(0.0159, 0, 0.8445, 0),
-        Image = "rbxasset://textures/ui/GuiImagePlaceholder.png",
-        BackgroundTransparency = 1,
-        Parent = Window,
-    })
-
-    -- Roblox Name
-    local RobloxName = self:CreateElement("TextLabel", {
-        Size = UDim2.new(0, 99, 0, 39),
-        Position = UDim2.new(0.1025, 0, 0.777, 0),
-        Text = "Username",
+    local TabLabel = self:CreateElement("TextLabel", {
+        Text = "Main Tab",
+        Size = UDim2.new(1, 0, 1, 0),
         BackgroundTransparency = 1,
         TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 14,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Font = Enum.Font.SourceSansBold,
-        Parent = Window,
+        TextSize = 20,
+        TextXAlignment = Enum.TextXAlignment.Center,
+        Font = Enum.Font.Gotham,
+        Parent = Tab,
     })
 
-    return EclipseLib
+    -- Store the tab element
+    EclipseLib.Elements.MainTab = Tab
+
+    -- Return the window object
+    return Window
 end
 
+-- Return the EclipseLib object to be used by the loadstring
 return EclipseLib
