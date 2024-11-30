@@ -12,12 +12,16 @@ local EclipseLib = {
 	Flags = {},
 	Themes = {
 		Default = {
-    Main = Color3.fromRGB(135, 206, 235),    -- Light Sky Blue (background)
-    Second = Color3.fromRGB(173, 216, 230),  -- Light Blue (lighter elements)
-    Stroke = Color3.fromRGB(70, 130, 180),   -- Steel Blue (for borders/strokes)
-    Divider = Color3.fromRGB(176, 224, 230), -- Powder Blue (used for dividing lines)
-    Text = Color3.fromRGB(0, 0, 0),           -- Black (for text)
-    TextDark = Color3.fromRGB(0, 0, 139)      -- Dark Blue (for dark text, optional)
+    Main = Color3.fromRGB(135, 206, 235),     -- Light Sky Blue (background)
+    Second = Color3.fromRGB(173, 216, 230),   -- Light Blue (lighter elements)
+    Stroke = Color3.fromRGB(100, 149, 237),   -- Cornflower Blue (for borders/strokes, better contrast)
+    Divider = Color3.fromRGB(135, 206, 250),  -- Lighter Powder Blue (used for dividing lines, subtle)
+    Text = Color3.fromRGB(0, 0, 0),            -- Black (for text)
+    TextDark = Color3.fromRGB(25, 25, 112),    -- Midnight Blue (for darker text, more contrast)
+    
+    -- Transparent background adjustments
+    BackgroundTransparency = 0.5,              -- Semi-transparent background for elements
+    ButtonTransparency = 0.8                   -- Transparent buttons with a slight opaque background
 }
 	},
 	SelectedTheme = "Default",
