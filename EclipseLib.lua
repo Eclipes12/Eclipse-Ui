@@ -1,166 +1,158 @@
--- EclipseLib.lua
+local EclipseUILib = {}
 
-local EclipseLib = {}
-
--- Initialize the Elements table if it doesn't exist
-EclipseLib.Elements = EclipseLib.Elements or {}
-
--- Helper function to create UI elements
-function EclipseLib:CreateElement(className, properties)
-    local element = Instance.new(className)
-    for property, value in pairs(properties) do
-        element[property] = value
-    end
-    return element
-end
-
--- MakeWindow function to create the main window
-function EclipseLib:MakeWindow(config)
-    -- Ensure there's a ScreenGui to parent the window to
-    local screenGui = game.Players.LocalPlayer.PlayerGui:FindFirstChild("ScreenGui")
-    if not screenGui then
-        screenGui = Instance.new("ScreenGui")
-        screenGui.Name = "ScreenGui"
-        screenGui.Parent = game.Players.LocalPlayer.PlayerGui
-    end
-
-    -- Intro Panel (Loading screen with text and icon)
-    local IntroPanel = self:CreateElement("Frame", {
-        Size = UDim2.new(0, 600, 0, 100),
-        Position = UDim2.new(0.5, -300, 0.5, -50),
-        BackgroundColor3 = Color3.fromRGB(30, 30, 30),
-        BorderSizePixel = 0,
-        AnchorPoint = Vector2.new(0.5, 0.5),
-        Parent = screenGui,
-    })
-
-    -- Icon for the Intro Panel
-    local Icon = self:CreateElement("ImageLabel", {
-        Size = UDim2.new(0, 50, 0, 50),
-        Position = UDim2.new(0, 10, 0, 25),
-        Image = config.IntroIcon or "rbxassetid://4483345998", -- Default Icon if not provided
-        BackgroundTransparency = 1,
-        Parent = IntroPanel,
-    })
-
-    -- Intro Text Label
-    local IntroTextLabel = self:CreateElement("TextLabel", {
-        Text = config.IntroText,
-        Size = UDim2.new(0, 500, 0, 50),
-        Position = UDim2.new(0, 70, 0, 25),
-        BackgroundTransparency = 1,
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 24,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        TextYAlignment = Enum.TextYAlignment.Center,
-        Font = Enum.Font.Gotham,
-        Parent = IntroPanel,
-    })
-
-    -- Animate intro text letter by letter
-    local function AnimateText()
-        local letters = config.IntroText:split("")
-        local index = 1
-        IntroTextLabel.Text = ""
-        while index <= #letters do
-            IntroTextLabel.Text = IntroTextLabel.Text .. letters[index]
-            index = index + 1
-            wait(0.1)  -- Adjust speed of animation
-        end
-    end
-
-    -- Start the animation and remove the intro screen after 5 seconds
-    AnimateText()
-    wait(5)
-    IntroPanel:Destroy()
-
-    -- Create the main window frame
-    local Window = self:CreateElement("Frame", {
-        Size = UDim2.new(0, 600, 0, 400),
-        Position = UDim2.new(0.5, -300, 0.5, -200),
-        BackgroundColor3 = Color3.fromRGB(30, 30, 30),
-        BorderSizePixel = 0,
-        AnchorPoint = Vector2.new(0.5, 0.5),
-        Name = "Window",
-        Parent = screenGui,  -- Parent the window to the screenGui
-    })
-
-    -- Create the panel that holds the title and close button
-    local Panel = self:CreateElement("Frame", {
-        Size = UDim2.new(1, 0, 0, 50),
-        BackgroundColor3 = Color3.fromRGB(40, 40, 40),
-        BorderSizePixel = 0,
-        Parent = Window,
-    })
-
-    -- Title label on the left side
-    local Title = self:CreateElement("TextLabel", {
-        Text = config.Name,
-        Size = UDim2.new(0, 500, 0, 50),
-        Position = UDim2.new(0, 10, 0, 0),
-        BackgroundTransparency = 1,
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 24,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Font = Enum.Font.GothamBold,
-        Parent = Panel,
-    })
-
-    -- Close button (X) on the right side
-    local CloseButton = self:CreateElement("TextButton", {
-        Size = UDim2.new(0, 50, 0, 50),
-        Position = UDim2.new(1, -60, 0, 0),
-        Text = "X",
-        BackgroundColor3 = Color3.fromRGB(200, 0, 0),
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 18,
-        BorderSizePixel = 0,
-        Parent = Panel,
-    })
-
-    -- Callback for closing the window
-    CloseButton.MouseButton1Click:Connect(function()
-        if config.CloseCallback then
-            config.CloseCallback()
-        end
-        Window:Destroy()  -- Close the window when clicked
-    end)
-
-    -- Dragging functionality
-    local dragging = false
-    local dragInput, dragStart, startPos
-
-    -- When the user clicks the title panel, start the dragging
-    Panel.InputBegan:Connect(function(input, gameProcessed)
-        if gameProcessed then return end
+-- Setup function to create a draggable UI
+local function makeDraggable(guiObject, dragHandle)
+    local dragging, dragInput, dragStart, startPos
+    dragHandle.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
             dragStart = input.Position
-            startPos = Window.Position
+            startPos = guiObject.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragging = false
+                end
+            end)
         end
     end)
 
-    -- When the user moves the mouse, move the window
-    Panel.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+    dragHandle.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
+        end
+    end)
+
+    game:GetService("UserInputService").InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
             local delta = input.Position - dragStart
-            Window.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            guiObject.Position = UDim2.new(
+                startPos.X.Scale,
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale,
+                startPos.Y.Offset + delta.Y
+            )
         end
     end)
-
-    -- When the user releases the mouse button, stop dragging
-    Panel.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-        end
-    end)
-
-    -- Store the window element in the library
-    EclipseLib.Elements.Window = Window
-
-    -- Return the window object
-    return Window
 end
 
--- Return the EclipseLib object to be used by the loadstring
-return EclipseLib
+-- Function to create the UI
+function EclipseUILib:MakeWindow(options)
+    local ScreenGui = Instance.new("ScreenGui")
+    local IntroPanel = Instance.new("Frame")
+    local IntroTextLabel = Instance.new("TextLabel")
+    local Icon = Instance.new("ImageLabel")
+    local Window = Instance.new("Frame")
+    local Panel = Instance.new("Frame")
+    local Title = Instance.new("TextLabel")
+    local CloseButton = Instance.new("TextButton")
+    local LeftSidePanel = Instance.new("Frame")
+    local MainPanel = Instance.new("Frame")
+
+    -- Assign options
+    local windowTitle = options.Name or "Window"
+    local introText = options.IntroText or "Welcome!"
+    local introIcon = options.IntroIcon or ""
+    local icon = options.Icon or ""
+
+    ScreenGui.Name = "EclipseUI"
+    ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+    ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+    -- IntroPanel
+    IntroPanel.Name = "IntroPanel"
+    IntroPanel.Parent = ScreenGui
+    IntroPanel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    IntroPanel.Size = UDim2.new(0, 300, 0, 200)
+    IntroPanel.Position = UDim2.new(0.5, -150, 0.5, -100)
+    IntroPanel.AnchorPoint = Vector2.new(0.5, 0.5)
+
+    Icon.Name = "Icon"
+    Icon.Parent = IntroPanel
+    Icon.Image = introIcon
+    Icon.Size = UDim2.new(0, 50, 0, 50)
+    Icon.Position = UDim2.new(0.05, 0, 0.25, 0)
+    Icon.BackgroundTransparency = 1
+
+    IntroTextLabel.Name = "IntroTextLabel"
+    IntroTextLabel.Parent = IntroPanel
+    IntroTextLabel.Text = ""
+    IntroTextLabel.Font = Enum.Font.SourceSansBold
+    IntroTextLabel.TextSize = 20
+    IntroTextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    IntroTextLabel.Position = UDim2.new(0.2, 0, 0.25, 0)
+    IntroTextLabel.Size = UDim2.new(0.75, 0, 0.5, 0)
+    IntroTextLabel.BackgroundTransparency = 1
+
+    -- Intro animation
+    coroutine.wrap(function()
+        local text = introText
+        for i = 1, #text do
+            IntroTextLabel.Text = string.sub(text, 1, i)
+            wait(0.05)
+        end
+        wait(5)
+        IntroPanel:Destroy()
+        Window.Visible = true
+    end)()
+
+    -- Window
+    Window.Name = "Window"
+    Window.Parent = ScreenGui
+    Window.BackgroundColor3 = Color3.fromRGB(29, 40, 255)
+    Window.Size = UDim2.new(0, 400, 0, 300)
+    Window.Position = UDim2.new(0.5, -200, 0.5, -150)
+    Window.AnchorPoint = Vector2.new(0.5, 0.5)
+    Window.Visible = false
+
+    Panel.Name = "Panel"
+    Panel.Parent = Window
+    Panel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    Panel.Size = UDim2.new(1, 0, 0, 40)
+
+    Title.Name = "Title"
+    Title.Parent = Panel
+    Title.Text = windowTitle
+    Title.Font = Enum.Font.SourceSansBold
+    Title.TextSize = 20
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.Size = UDim2.new(0.8, 0, 1, 0)
+
+    CloseButton.Name = "CloseButton"
+    CloseButton.Parent = Panel
+    CloseButton.Text = "X"
+    CloseButton.Font = Enum.Font.SourceSansBold
+    CloseButton.TextSize = 20
+    CloseButton.TextColor3 = Color3.fromRGB(255, 0, 0)
+    CloseButton.Size = UDim2.new(0.2, 0, 1, 0)
+    CloseButton.Position = UDim2.new(0.8, 0, 0, 0)
+    CloseButton.MouseButton1Click:Connect(function()
+        Window.Visible = false
+    end)
+
+    -- LeftSidePanel
+    LeftSidePanel.Name = "LeftSidePanel"
+    LeftSidePanel.Parent = Window
+    LeftSidePanel.BackgroundColor3 = Color3.fromRGB(29, 40, 255)
+    LeftSidePanel.Size = UDim2.new(0.2, 0, 1, -40)
+    LeftSidePanel.Position = UDim2.new(0, 0, 0, 40)
+
+    -- MainPanel
+    MainPanel.Name = "MainPanel"
+    MainPanel.Parent = Window
+    MainPanel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    MainPanel.Size = UDim2.new(0.8, 0, 1, -40)
+    MainPanel.Position = UDim2.new(0.2, 0, 0, 40)
+
+    makeDraggable(Window, Panel)
+
+    return {
+        AddTab = function(self, tabOptions)
+            -- Code for tabs here
+        end,
+        AddButton = function(self, buttonOptions)
+            -- Code for buttons here
+        end
+    }
+end
+
+return EclipseUILib
