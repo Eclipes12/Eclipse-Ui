@@ -1,168 +1,209 @@
--- EclipseLib.lua
-local EclipseLib = {}
+local ScreenGui = Instance.new("ScreenGui")
+local IntroPanel = Instance.new("Frame")
+local IntroTextLabel = Instance.new("TextLabel")
+local Icon = Instance.new("ImageLabel")
+local Window = Instance.new("Frame")
+local Panel = Instance.new("Frame")
+local Title = Instance.new("TextLabel")
+local CloseButton = Instance.new("TextButton")
+local LeftSidePanel = Instance.new("Frame")
+local TabButton = Instance.new("TextButton")
+local TabIcon = Instance.new("ImageLabel")
+local MainPanel = Instance.new("Frame")
+local Button = Instance.new("TextButton")
+local ButtonIcon = Instance.new("ImageLabel")
+local Frame = Instance.new("Frame")
+local RobloxProfile = Instance.new("ImageLabel")
+local RobloxName = Instance.new("TextLabel")
 
--- Initialize the Elements table if it doesn't exist
-EclipseLib.Elements = EclipseLib.Elements or {}
+-- Properties:
 
--- Helper function to create UI elements
-function EclipseLib:CreateElement(className, properties)
-    local element = Instance.new(className)
-    for property, value in pairs(properties) do
-        element[property] = value
-    end
-    return element
-end
+ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
--- MakeWindow function to create the main window
-function EclipseLib:MakeWindow(config)
-    -- Ensure there's a ScreenGui to parent the window to
-    local screenGui = game.Players.LocalPlayer.PlayerGui:FindFirstChild("ScreenGui")
-    if not screenGui then
-        screenGui = Instance.new("ScreenGui")
-        screenGui.Name = "ScreenGui"
-        screenGui.Parent = game.Players.LocalPlayer.PlayerGui
-    end
+IntroPanel.Name = "IntroPanel"
+IntroPanel.Parent = ScreenGui
+IntroPanel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+IntroPanel.BackgroundTransparency = 1.000
+IntroPanel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+IntroPanel.BorderSizePixel = 0
+IntroPanel.Position = UDim2.new(0, 510, 0, 290)
+IntroPanel.Size = UDim2.new(0, 311, 0, 232)
+IntroPanel.Visible = false
 
-    -- Intro Panel (Loading screen with text and icon)
-    local IntroPanel = self:CreateElement("Frame", {
-        Size = UDim2.new(0, 600, 0, 100),
-        Position = UDim2.new(0.5, -300, 0.5, -50),
-        BackgroundColor3 = Color3.fromRGB(30, 30, 30),
-        BorderSizePixel = 0,
-        AnchorPoint = Vector2.new(0.5, 0.5),
-        Parent = screenGui,
-    })
+IntroTextLabel.Name = "IntroTextLabel"
+IntroTextLabel.Parent = IntroPanel
+IntroTextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+IntroTextLabel.BackgroundTransparency = 1.000
+IntroTextLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+IntroTextLabel.BorderSizePixel = 0
+IntroTextLabel.Position = UDim2.new(0.176848873, 0, 0.396551728, 0)
+IntroTextLabel.Size = UDim2.new(0, 200, 0, 50)
+IntroTextLabel.Font = Enum.Font.SourceSansBold
+IntroTextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+IntroTextLabel.TextScaled = true
+IntroTextLabel.TextSize = 14.000
+IntroTextLabel.TextWrapped = true
 
-    -- Icon for the Intro Panel
-    local Icon = self:CreateElement("ImageLabel", {
-        Size = UDim2.new(0, 50, 0, 50),
-        Position = UDim2.new(0, 10, 0, 25),
-        Image = config.IntroIcon or "rbxassetid://4483345998", -- Default Icon if not provided
-        BackgroundTransparency = 1,
-        Parent = IntroPanel,
-    })
+Icon.Name = "Icon"
+Icon.Parent = IntroPanel
+Icon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Icon.BackgroundTransparency = 1.000
+Icon.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Icon.BorderSizePixel = 0
+Icon.Position = UDim2.new(0.176848873, 0, 0.400862068, 0)
+Icon.Size = UDim2.new(0, 47, 0, 46)
+Icon.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
 
-    -- Intro Text Label
-    local IntroTextLabel = self:CreateElement("TextLabel", {
-        Text = config.IntroText,
-        Size = UDim2.new(0, 500, 0, 50),
-        Position = UDim2.new(0, 70, 0, 25),
-        BackgroundTransparency = 1,
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 24,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        TextYAlignment = Enum.TextYAlignment.Center,
-        Font = Enum.Font.Gotham,
-        Parent = IntroPanel,
-    })
+Window.Name = "Window"
+Window.Parent = ScreenGui
+Window.BackgroundColor3 = Color3.fromRGB(29, 40, 255)
+Window.BackgroundTransparency = 0.700
+Window.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Window.BorderSizePixel = 0
+Window.Position = UDim2.new(0.313343316, 0, 0.270270258, 0)
+Window.Size = UDim2.new(0, 498, 0, 373)
 
-    -- Animate intro text letter by letter
-    local function AnimateText()
-        local letters = config.IntroText:split("")
-        local index = 1
-        IntroTextLabel.Text = ""
-        while index <= #letters do
-            IntroTextLabel.Text = IntroTextLabel.Text .. letters[index]
-            index = index + 1
-            wait(0.1)  -- Adjust speed of animation
-        end
-    end
+Panel.Name = "Panel"
+Panel.Parent = Window
+Panel.BackgroundColor3 = Color3.fromRGB(29, 40, 255)
+Panel.BackgroundTransparency = 0.800
+Panel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Panel.BorderSizePixel = 0
+Panel.Size = UDim2.new(0, 498, 0, 46)
 
-    -- Start the animation and remove the intro screen after 5 seconds
-    AnimateText()
-    wait(5)
-    IntroPanel:Destroy()
+Title.Name = "Title"
+Title.Parent = Panel
+Title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Title.BackgroundTransparency = 1.000
+Title.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Title.BorderSizePixel = 0
+Title.Size = UDim2.new(0, 143, 0, 46)
+Title.Font = Enum.Font.SourceSansBold
+Title.Text = "Title"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextScaled = true
+Title.TextSize = 14.000
+Title.TextWrapped = true
 
-    -- Create the main window frame
-    local Window = self:CreateElement("Frame", {
-        Size = UDim2.new(0, 600, 0, 400),
-        Position = UDim2.new(0.5, -300, 0.5, -200),
-        BackgroundColor3 = Color3.fromRGB(30, 30, 30),
-        BorderSizePixel = 0,
-        AnchorPoint = Vector2.new(0.5, 0.5),
-        Name = "Window",
-        Parent = screenGui,
-    })
+CloseButton.Name = "CloseButton"
+CloseButton.Parent = Panel
+CloseButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.BackgroundTransparency = 1.000
+CloseButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+CloseButton.BorderSizePixel = 0
+CloseButton.Position = UDim2.new(0.889558256, 0, 0, 0)
+CloseButton.Size = UDim2.new(0, 55, 0, 46)
+CloseButton.Font = Enum.Font.SourceSansBold
+CloseButton.Text = "X"
+CloseButton.TextColor3 = Color3.fromRGB(248, 248, 248)
+CloseButton.TextScaled = true
+CloseButton.TextSize = 14.000
+CloseButton.TextWrapped = true
 
-    -- Create the panel that holds the title and close button
-    local Panel = self:CreateElement("Frame", {
-        Size = UDim2.new(1, 0, 0, 50),
-        BackgroundColor3 = Color3.fromRGB(40, 40, 40),
-        BorderSizePixel = 0,
-        Parent = Window,
-    })
+LeftSidePanel.Name = "LeftSidePanel"
+LeftSidePanel.Parent = Window
+LeftSidePanel.BackgroundColor3 = Color3.fromRGB(29, 40, 255)
+LeftSidePanel.BackgroundTransparency = 0.700
+LeftSidePanel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+LeftSidePanel.BorderSizePixel = 0
+LeftSidePanel.Position = UDim2.new(0.0160642564, 0, 0.147453085, 0)
+LeftSidePanel.Size = UDim2.new(0, 135, 0, 311)
 
-    -- Title label on the left side
-    local Title = self:CreateElement("TextLabel", {
-        Text = config.Name,
-        Size = UDim2.new(0, 500, 0, 50),
-        Position = UDim2.new(0, 10, 0, 0),
-        BackgroundTransparency = 1,
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 24,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Font = Enum.Font.GothamBold,
-        Parent = Panel,
-    })
+TabButton.Name = "TabButton"
+TabButton.Parent = LeftSidePanel
+TabButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TabButton.BackgroundTransparency = 0.700
+TabButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TabButton.BorderSizePixel = 0
+TabButton.Position = UDim2.new(0.266666681, 0, 0.0353697762, 0)
+TabButton.Size = UDim2.new(0, 99, 0, 39)
+TabButton.Font = Enum.Font.SourceSansBold
+TabButton.Text = "Tab"
+TabButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+TabButton.TextScaled = true
+TabButton.TextSize = 14.000
+TabButton.TextWrapped = true
+TabButton.TextXAlignment = Enum.TextXAlignment.Left
 
-    -- Close button (X) on the right side
-    local CloseButton = self:CreateElement("TextButton", {
-        Size = UDim2.new(0, 50, 0, 50),
-        Position = UDim2.new(1, -60, 0, 0),
-        Text = "X",
-        BackgroundColor3 = Color3.fromRGB(200, 0, 0),
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        TextSize = 18,
-        BorderSizePixel = 0,
-        Parent = Panel,
-    })
+TabIcon.Name = "TabIcon"
+TabIcon.Parent = TabButton
+TabIcon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TabIcon.BackgroundTransparency = 1.000
+TabIcon.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TabIcon.BorderSizePixel = 0
+TabIcon.Position = UDim2.new(-0.363636374, 0, 0, 0)
+TabIcon.Size = UDim2.new(0, 36, 0, 39)
+TabIcon.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
 
-    -- Callback for closing the window
-    CloseButton.MouseButton1Click:Connect(function()
-        if config.CloseCallback then
-            config.CloseCallback()
-        end
-        Window:Destroy()  -- Close the window when clicked
-    end)
+MainPanel.Name = "MainPanel"
+MainPanel.Parent = Window
+MainPanel.BackgroundColor3 = Color3.fromRGB(29, 40, 255)
+MainPanel.BackgroundTransparency = 0.700
+MainPanel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+MainPanel.BorderSizePixel = 0
+MainPanel.Position = UDim2.new(0.303212851, 0, 0.147453085, 0)
+MainPanel.Size = UDim2.new(0, 338, 0, 311)
 
-    -- Dragging functionality
-    local dragging = false
-    local dragInput, dragStart, startPos
+Button.Name = "Button"
+Button.Parent = MainPanel
+Button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Button.BackgroundTransparency = 0.700
+Button.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Button.BorderSizePixel = 0
+Button.Position = UDim2.new(0.0209791195, 0, 0.0353697762, 0)
+Button.Size = UDim2.new(0, 324, 0, 39)
+Button.Font = Enum.Font.SourceSansBold
+Button.Text = "Tab"
+Button.TextColor3 = Color3.fromRGB(0, 0, 0)
+Button.TextScaled = true
+Button.TextSize = 14.000
+Button.TextWrapped = true
+Button.TextXAlignment = Enum.TextXAlignment.Left
 
-    -- When the user clicks the title panel, start the dragging
-    Panel.InputBegan:Connect(function(input, gameProcessed)
-        if gameProcessed then return end
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            dragStart = input.Position
-            startPos = Window.Position
-        end
-    end)
+ButtonIcon.Name = "ButtonIcon"
+ButtonIcon.Parent = Button
+ButtonIcon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ButtonIcon.BackgroundTransparency = 1.000
+ButtonIcon.BorderColor3 = Color3.fromRGB(0, 0, 0)
+ButtonIcon.BorderSizePixel = 0
+ButtonIcon.Position = UDim2.new(0.877899528, 0, 0, 0)
+ButtonIcon.Size = UDim2.new(0, 39, 0, 39)
+ButtonIcon.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
 
-    -- When the user moves the mouse, move the window
-    Panel.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local delta = input.Position - dragStart
-            Window.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-        end
-    end)
+Frame.Parent = Window
+Frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Frame.BorderSizePixel = 0
+Frame.Position = UDim2.new(0.0160642564, 0, 0.823056281, 0)
+Frame.Size = UDim2.new(0, 135, 0, 3)
 
-    -- When the user releases the mouse button, stop dragging
-    Panel.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
-        end
-    end)
+RobloxProfile.Name = "RobloxProfile"
+RobloxProfile.Parent = Window
+RobloxProfile.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+RobloxProfile.BackgroundTransparency = 1.000
+RobloxProfile.BorderColor3 = Color3.fromRGB(0, 0, 0)
+RobloxProfile.BorderSizePixel = 0
+RobloxProfile.Position = UDim2.new(0.0158817023, 0, 0.844503999, 0)
+RobloxProfile.Size = UDim2.new(0, 36, 0, 39)
+RobloxProfile.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
 
-    -- Store the window element in the library
-    EclipseLib.Elements.Window = Window
+RobloxName.Name = "RobloxName"
+RobloxName.Parent = Window
+RobloxName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+RobloxName.BackgroundTransparency = 1.000
+RobloxName.BorderColor3 = Color3.fromRGB(0, 0, 0)
+RobloxName.BorderSizePixel = 0
+RobloxName.Position = UDim2.new(0.0883534104, 0, 0.844503999, 0)
+RobloxName.Size = UDim2.new(0, 99, 0, 39)
+RobloxName.Font = Enum.Font.SourceSansBold
+RobloxName.Text = "Name"
+RobloxName.TextColor3 = Color3.fromRGB(0, 0, 0)
+RobloxName.TextScaled = true
+RobloxName.TextSize = 14.000
+RobloxName.TextWrapped = true
 
-    -- Add the additional UI elements such as LeftSidePanel, TabButton, etc.
-    -- (Add code to create the left side panel, tabs, main buttons, and other elements here...)
-
-    -- Return the window object
-    return Window
-end
-
--- Return the EclipseLib object to be used by the loadstring
-return EclipseLib
+-- Close Button functionality
+CloseButton.MouseButton1Click:Connect(function()
+    Window:Destroy()
+end)
