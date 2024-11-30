@@ -2,7 +2,8 @@
 
 local EclipseLib = {}
 
-EclipseLib.Elements = {}
+-- Initialize the Elements table if it doesn't exist
+EclipseLib.Elements = EclipseLib.Elements or {}
 
 -- Helper function to create UI elements
 function EclipseLib:CreateElement(className, properties)
@@ -15,6 +16,14 @@ end
 
 -- MakeWindow function to create the main window
 function EclipseLib:MakeWindow(config)
+    -- Ensure there's a ScreenGui to parent the window to
+    local screenGui = game.Players.LocalPlayer.PlayerGui:FindFirstChild("ScreenGui")
+    if not screenGui then
+        screenGui = Instance.new("ScreenGui")
+        screenGui.Name = "ScreenGui"
+        screenGui.Parent = game.Players.LocalPlayer.PlayerGui
+    end
+
     -- Create the main window frame
     local Window = self:CreateElement("Frame", {
         Size = UDim2.new(0, 600, 0, 400),
@@ -23,7 +32,7 @@ function EclipseLib:MakeWindow(config)
         BorderSizePixel = 0,
         AnchorPoint = Vector2.new(0.5, 0.5),
         Name = "Window",
-        Parent = game.Players.LocalPlayer.PlayerGui:WaitForChild("ScreenGui"),
+        Parent = screenGui,  -- Ensure we parent to the correct ScreenGui
     })
 
     -- Intro Text (if enabled)
