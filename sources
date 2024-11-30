@@ -1,115 +1,87 @@
--- source.lua
+-- EclipseLib.lua
 
-local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local Mouse = LocalPlayer:GetMouse()
+local EclipseLib = {}
 
-local CustomUILibrary = {
-    Elements = {},
-    ThemeObjects = {},
-    Connections = {},
-    Flags = {},
-    Themes = {
-        Default = {
-            Main = Color3.fromRGB(25, 25, 25),
-            Second = Color3.fromRGB(32, 32, 32),
-            Stroke = Color3.fromRGB(60, 60, 60),
-            Divider = Color3.fromRGB(60, 60, 60),
-            Text = Color3.fromRGB(240, 240, 240),
-            TextDark = Color3.fromRGB(150, 150, 150)
-        }
-    },
-    SelectedTheme = "Default",
-    SaveCfg = false,
-    ConfigFolder = "CustomUILibraryConfigs"
-}
+EclipseLib.Elements = {}
 
--- Helper function to create UI components
-local function CreateUIComponent(Type, Parent, Properties)
-    local component = Instance.new(Type)
-    for prop, value in pairs(Properties) do
-        component[prop] = value
+-- Helper function to create UI elements
+function EclipseLib:CreateElement(className, properties)
+    local element = Instance.new(className)
+    for property, value in pairs(properties) do
+        element[property] = value
     end
-    component.Parent = Parent
-    return component
+    return element
 end
 
--- MakeWindow Function
-function CustomUILibrary:MakeWindow(Options)
-    local Window = Instance.new("Frame")
-    Window.Name = Options.Name or "Custom Window"
-    Window.Size = UDim2.new(0, 400, 0, 300)
-    Window.Position = UDim2.new(0.5, -200, 0.5, -150)
-    Window.AnchorPoint = Vector2.new(0.5, 0.5)
-    Window.BackgroundColor3 = self.Themes[self.SelectedTheme].Main
-    Window.Visible = true
-
-    -- Title Bar
-    local TitleBar = CreateUIComponent("TextLabel", Window, {
-        Text = Options.Name,
-        Size = UDim2.new(1, 0, 0, 30),
-        BackgroundColor3 = self.Themes[self.SelectedTheme].Second,
-        TextColor3 = self.Themes[self.SelectedTheme].Text,
-        TextScaled = true,
-        TextAlign = Enum.TextAnchor.MiddleCenter
+-- MakeWindow function to create the main window
+function EclipseLib:MakeWindow(config)
+    -- Create the main window frame
+    local Window = self:CreateElement("Frame", {
+        Size = UDim2.new(0, 600, 0, 400),
+        Position = UDim2.new(0.5, -300, 0.5, -200),
+        BackgroundColor3 = Color3.fromRGB(30, 30, 30),
+        BorderSizePixel = 0,
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Name = "Window",
+        Parent = game.Players.LocalPlayer.PlayerGui:WaitForChild("ScreenGui"),
     })
 
-    -- Save configuration if enabled
-    if Options.SaveConfig then
-        -- Add save/load functionality here (could use JSON, DataStore, etc.)
+    -- Intro Text (if enabled)
+    if config.IntroEnabled then
+        local IntroLabel = self:CreateElement("TextLabel", {
+            Text = config.IntroText,
+            Size = UDim2.new(0, 600, 0, 50),
+            Position = UDim2.new(0, 0, 0, 0),
+            BackgroundTransparency = 1,
+            TextColor3 = Color3.fromRGB(255, 255, 255),
+            TextSize = 24,
+            TextAlign = Enum.TextXAlignment.Center,
+            Parent = Window,
+        })
+        
+        -- Wait a few seconds before the window contents appear
+        wait(2)
+        IntroLabel:Destroy()  -- Remove the intro text after delay
     end
 
-    self.Elements[Window.Name] = Window
+    -- Title Label
+    local Title = self:CreateElement("TextLabel", {
+        Text = config.Name,
+        Size = UDim2.new(0, 300, 0, 50),
+        Position = UDim2.new(0, 10, 0, 10),
+        BackgroundTransparency = 1,
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        TextSize = 24,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = Window,
+    })
+
+    -- Create Close Button
+    local CloseButton = self:CreateElement("TextButton", {
+        Size = UDim2.new(0, 100, 0, 50),
+        Position = UDim2.new(1, -110, 0, 10),
+        Text = "Close",
+        BackgroundColor3 = Color3.fromRGB(200, 0, 0),
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        TextSize = 18,
+        BorderSizePixel = 0,
+        Parent = Window,
+    })
+
+    -- Callback for closing the window
+    CloseButton.MouseButton1Click:Connect(function()
+        if config.CloseCallback then
+            config.CloseCallback()
+        end
+        Window:Destroy()  -- Close the window when clicked
+    end)
+
+    -- Store the window element in the library
+    EclipseLib.Elements.Window = Window
+
+    -- Return the window object
     return Window
 end
 
--- MakeTab Function
-function CustomUILibrary:MakeTab(Options)
-    local Tab = Instance.new("Frame")
-    Tab.Size = UDim2.new(0, 380, 0, 220)
-    Tab.BackgroundColor3 = self.Themes[self.SelectedTheme].Second
-    Tab.Position = UDim2.new(0.5, -190, 0.5, -110)
-
-    -- Tab Title
-    local TabTitle = CreateUIComponent("TextLabel", Tab, {
-        Text = Options.Name,
-        Size = UDim2.new(1, 0, 0, 30),
-        BackgroundColor3 = self.Themes[self.SelectedTheme].Stroke,
-        TextColor3 = self.Themes[self.SelectedTheme].Text,
-        TextScaled = true,
-        TextAlign = Enum.TextAnchor.MiddleCenter
-    })
-
-    self.Elements[Tab.Name] = Tab
-    return Tab
-end
-
--- Function to allow users to easily create buttons
-function CustomUILibrary:AddButton(Window, ButtonName, Callback)
-    local Button = Instance.new("TextButton")
-    Button.Parent = Window
-    Button.Size = UDim2.new(0, 200, 0, 50)
-    Button.Position = UDim2.new(0, 0, 0, 40)
-    Button.Text = ButtonName
-    Button.BackgroundColor3 = self.Themes[self.SelectedTheme].Stroke
-    Button.TextColor3 = self.Themes[self.SelectedTheme].Text
-    Button.TextScaled = true
-
-    Button.MouseButton1Click:Connect(function()
-        Callback()
-    end)
-
-    table.insert(self.Elements, Button)
-    return Button
-end
-
--- Function to initialize the library
-function CustomUILibrary:Init()
-    -- Any additional setup if needed
-end
-
--- Return the library so it can be accessed by users
-return CustomUILibrary
+-- Return the EclipseLib object to be used by the loadstring
+return EclipseLib
