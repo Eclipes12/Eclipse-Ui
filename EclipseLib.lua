@@ -24,6 +24,56 @@ function EclipseLib:MakeWindow(config)
         screenGui.Parent = game.Players.LocalPlayer.PlayerGui
     end
 
+    -- Intro Panel (Loading screen with text and icon)
+    local IntroPanel = self:CreateElement("Frame", {
+        Size = UDim2.new(0, 600, 0, 100),
+        Position = UDim2.new(0.5, -300, 0.5, -50),
+        BackgroundColor3 = Color3.fromRGB(30, 30, 30),
+        BorderSizePixel = 0,
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Parent = screenGui,
+    })
+
+    -- Icon for the Intro Panel
+    local Icon = self:CreateElement("ImageLabel", {
+        Size = UDim2.new(0, 50, 0, 50),
+        Position = UDim2.new(0, 10, 0, 25),
+        Image = config.IntroIcon or "rbxassetid://4483345998", -- Default Icon if not provided
+        BackgroundTransparency = 1,
+        Parent = IntroPanel,
+    })
+
+    -- Intro Text Label
+    local IntroTextLabel = self:CreateElement("TextLabel", {
+        Text = config.IntroText,
+        Size = UDim2.new(0, 500, 0, 50),
+        Position = UDim2.new(0, 70, 0, 25),
+        BackgroundTransparency = 1,
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        TextSize = 24,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextYAlignment = Enum.TextYAlignment.Center,
+        Font = Enum.Font.Gotham,
+        Parent = IntroPanel,
+    })
+
+    -- Animate intro text letter by letter
+    local function AnimateText()
+        local letters = config.IntroText:split("")
+        local index = 1
+        IntroTextLabel.Text = ""
+        while index <= #letters do
+            IntroTextLabel.Text = IntroTextLabel.Text .. letters[index]
+            index = index + 1
+            wait(0.1)  -- Adjust speed of animation
+        end
+    end
+
+    -- Start the animation and remove the intro screen after 5 seconds
+    AnimateText()
+    wait(5)
+    IntroPanel:Destroy()
+
     -- Create the main window frame
     local Window = self:CreateElement("Frame", {
         Size = UDim2.new(0, 600, 0, 400),
@@ -32,49 +82,40 @@ function EclipseLib:MakeWindow(config)
         BorderSizePixel = 0,
         AnchorPoint = Vector2.new(0.5, 0.5),
         Name = "Window",
-        Parent = screenGui,  -- Ensure we parent to the correct ScreenGui
+        Parent = screenGui,  -- Parent the window to the screenGui
     })
 
-    -- Intro Text (if enabled)
-    if config.IntroEnabled then
-        local IntroLabel = self:CreateElement("TextLabel", {
-            Text = config.IntroText,
-            Size = UDim2.new(0, 600, 0, 50),
-            Position = UDim2.new(0, 0, 0, 0),
-            BackgroundTransparency = 1,
-            TextColor3 = Color3.fromRGB(255, 255, 255),
-            TextSize = 24,
-            TextAlign = Enum.TextXAlignment.Center,
-            Parent = Window,
-        })
-        
-        -- Wait a few seconds before the window contents appear
-        wait(2)
-        IntroLabel:Destroy()  -- Remove the intro text after delay
-    end
+    -- Create the panel that holds the title and close button
+    local Panel = self:CreateElement("Frame", {
+        Size = UDim2.new(1, 0, 0, 50),
+        BackgroundColor3 = Color3.fromRGB(40, 40, 40),
+        BorderSizePixel = 0,
+        Parent = Window,
+    })
 
-    -- Title Label
+    -- Title label on the left side
     local Title = self:CreateElement("TextLabel", {
         Text = config.Name,
-        Size = UDim2.new(0, 300, 0, 50),
-        Position = UDim2.new(0, 10, 0, 10),
+        Size = UDim2.new(0, 500, 0, 50),
+        Position = UDim2.new(0, 10, 0, 0),
         BackgroundTransparency = 1,
         TextColor3 = Color3.fromRGB(255, 255, 255),
         TextSize = 24,
         TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = Window,
+        Font = Enum.Font.GothamBold,
+        Parent = Panel,
     })
 
-    -- Create Close Button
+    -- Close button (X) on the right side
     local CloseButton = self:CreateElement("TextButton", {
-        Size = UDim2.new(0, 100, 0, 50),
-        Position = UDim2.new(1, -110, 0, 10),
-        Text = "Close",
+        Size = UDim2.new(0, 50, 0, 50),
+        Position = UDim2.new(1, -60, 0, 0),
+        Text = "X",
         BackgroundColor3 = Color3.fromRGB(200, 0, 0),
         TextColor3 = Color3.fromRGB(255, 255, 255),
         TextSize = 18,
         BorderSizePixel = 0,
-        Parent = Window,
+        Parent = Panel,
     })
 
     -- Callback for closing the window
@@ -83,6 +124,35 @@ function EclipseLib:MakeWindow(config)
             config.CloseCallback()
         end
         Window:Destroy()  -- Close the window when clicked
+    end)
+
+    -- Dragging functionality
+    local dragging = false
+    local dragInput, dragStart, startPos
+
+    -- When the user clicks the title panel, start the dragging
+    Panel.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = Window.Position
+        end
+    end)
+
+    -- When the user moves the mouse, move the window
+    Panel.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            Window.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+
+    -- When the user releases the mouse button, stop dragging
+    Panel.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
     end)
 
     -- Store the window element in the library
