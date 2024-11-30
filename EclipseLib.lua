@@ -1,6 +1,6 @@
 local EclipseUILib = {}
 
--- Setup function to create a draggable UI
+-- Helper: Make UI draggable
 local function makeDraggable(guiObject, dragHandle)
     local dragging, dragInput, dragStart, startPos
     dragHandle.InputBegan:Connect(function(input)
@@ -35,167 +35,123 @@ local function makeDraggable(guiObject, dragHandle)
     end)
 end
 
--- Function to create the UI
-function EclipseUILib:MakeWindow(options)
+-- Core UI function
+function EclipseUILib:CreateWindow(options)
+    -- Options
+    local titleText = options.Title or "Window"
+
+    -- Fetch player info
+    local player = game.Players.LocalPlayer
+    local playerName = player.DisplayName or player.Name
+    local profileIcon = string.format("https://www.roblox.com/headshot-thumbnail/image?userId=%s&width=420&height=420&format=png", player.UserId)
+
+    -- UI Elements
     local ScreenGui = Instance.new("ScreenGui")
-    local IntroPanel = Instance.new("Frame")
-    local IntroTextLabel = Instance.new("TextLabel")
-    local Icon = Instance.new("ImageLabel")
     local Window = Instance.new("Frame")
     local Panel = Instance.new("Frame")
     local Title = Instance.new("TextLabel")
     local CloseButton = Instance.new("TextButton")
     local LeftSidePanel = Instance.new("Frame")
     local MainPanel = Instance.new("Frame")
-    local TabsContainer = {}
+    local ProfileFrame = Instance.new("Frame")
+    local RobloxProfile = Instance.new("ImageLabel")
+    local RobloxName = Instance.new("TextLabel")
 
-    -- Assign options
-    local windowTitle = options.Name or "Window"
-    local introText = options.IntroText or "Welcome!"
-    local introIcon = options.IntroIcon or ""
-    local icon = options.Icon or ""
-
+    -- Set parent and basic properties
     ScreenGui.Name = "EclipseUI"
-    ScreenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+    ScreenGui.Parent = player:WaitForChild("PlayerGui")
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-
-    -- IntroPanel
-    IntroPanel.Name = "IntroPanel"
-    IntroPanel.Parent = ScreenGui
-    IntroPanel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    IntroPanel.Size = UDim2.new(0, 300, 0, 200)
-    IntroPanel.Position = UDim2.new(0.5, -150, 0.5, -100)
-    IntroPanel.AnchorPoint = Vector2.new(0.5, 0.5)
-
-    Icon.Name = "Icon"
-    Icon.Parent = IntroPanel
-    Icon.Image = introIcon
-    Icon.Size = UDim2.new(0, 50, 0, 50)
-    Icon.Position = UDim2.new(0.05, 0, 0.25, 0)
-    Icon.BackgroundTransparency = 1
-
-    IntroTextLabel.Name = "IntroTextLabel"
-    IntroTextLabel.Parent = IntroPanel
-    IntroTextLabel.Text = ""
-    IntroTextLabel.Font = Enum.Font.SourceSansBold
-    IntroTextLabel.TextSize = 20
-    IntroTextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    IntroTextLabel.Position = UDim2.new(0.2, 0, 0.25, 0)
-    IntroTextLabel.Size = UDim2.new(0.75, 0, 0.5, 0)
-    IntroTextLabel.BackgroundTransparency = 1
-
-    -- Intro animation
-    coroutine.wrap(function()
-        local text = introText
-        for i = 1, #text do
-            IntroTextLabel.Text = string.sub(text, 1, i)
-            wait(0.05)
-        end
-        wait(5)
-        IntroPanel:Destroy()
-        Window.Visible = true
-    end)()
 
     -- Window
     Window.Name = "Window"
     Window.Parent = ScreenGui
     Window.BackgroundColor3 = Color3.fromRGB(29, 40, 255)
-    Window.Size = UDim2.new(0, 400, 0, 300)
-    Window.Position = UDim2.new(0.5, -200, 0.5, -150)
-    Window.AnchorPoint = Vector2.new(0.5, 0.5)
-    Window.Visible = false
+    Window.BackgroundTransparency = 0.7
+    Window.Position = UDim2.new(0.3, 0, 0.3, 0)
+    Window.Size = UDim2.new(0, 498, 0, 373)
 
+    -- Panel
     Panel.Name = "Panel"
     Panel.Parent = Window
-    Panel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    Panel.Size = UDim2.new(1, 0, 0, 40)
+    Panel.BackgroundColor3 = Color3.fromRGB(29, 40, 255)
+    Panel.BackgroundTransparency = 0.8
+    Panel.Size = UDim2.new(1, 0, 0, 46)
 
+    -- Title
     Title.Name = "Title"
     Title.Parent = Panel
-    Title.Text = windowTitle
-    Title.Font = Enum.Font.SourceSansBold
-    Title.TextSize = 20
-    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.BackgroundTransparency = 1
     Title.Size = UDim2.new(0.8, 0, 1, 0)
+    Title.Font = Enum.Font.SourceSansBold
+    Title.Text = titleText
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.TextScaled = true
 
+    -- Close Button
     CloseButton.Name = "CloseButton"
     CloseButton.Parent = Panel
-    CloseButton.Text = "X"
-    CloseButton.Font = Enum.Font.SourceSansBold
-    CloseButton.TextSize = 20
-    CloseButton.TextColor3 = Color3.fromRGB(255, 0, 0)
+    CloseButton.BackgroundTransparency = 1
     CloseButton.Size = UDim2.new(0.2, 0, 1, 0)
     CloseButton.Position = UDim2.new(0.8, 0, 0, 0)
+    CloseButton.Font = Enum.Font.SourceSansBold
+    CloseButton.Text = "X"
+    CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseButton.TextScaled = true
     CloseButton.MouseButton1Click:Connect(function()
-        Window.Visible = false
+        ScreenGui:Destroy()
     end)
 
-    -- LeftSidePanel
-    LeftSidePanel.Name = "LeftSidePanel"
-    LeftSidePanel.Parent = Window
-    LeftSidePanel.BackgroundColor3 = Color3.fromRGB(29, 40, 255)
-    LeftSidePanel.Size = UDim2.new(0.2, 0, 1, -40)
-    LeftSidePanel.Position = UDim2.new(0, 0, 0, 40)
-
-    -- MainPanel
+    -- Main Panel
     MainPanel.Name = "MainPanel"
     MainPanel.Parent = Window
-    MainPanel.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    MainPanel.Size = UDim2.new(0.8, 0, 1, -40)
-    MainPanel.Position = UDim2.new(0.2, 0, 0, 40)
+    MainPanel.BackgroundColor3 = Color3.fromRGB(29, 40, 255)
+    MainPanel.BackgroundTransparency = 0.7
+    MainPanel.Position = UDim2.new(0.3, 0, 0.2, 0)
+    MainPanel.Size = UDim2.new(0.7, 0, 0.7, 0)
 
+    -- Profile Frame
+    ProfileFrame.Name = "ProfileFrame"
+    ProfileFrame.Parent = Window
+    ProfileFrame.BackgroundTransparency = 1
+    ProfileFrame.Position = UDim2.new(0.03, 0, 0.8, 0)
+    ProfileFrame.Size = UDim2.new(0.3, 0, 0.2, 0)
+
+    RobloxProfile.Name = "RobloxProfile"
+    RobloxProfile.Parent = ProfileFrame
+    RobloxProfile.Size = UDim2.new(0.3, 0, 1, 0)
+    RobloxProfile.Image = profileIcon
+
+    RobloxName.Name = "RobloxName"
+    RobloxName.Parent = ProfileFrame
+    RobloxName.Size = UDim2.new(0.7, 0, 1, 0)
+    RobloxName.Position = UDim2.new(0.3, 0, 0, 0)
+    RobloxName.Font = Enum.Font.SourceSansBold
+    RobloxName.Text = playerName
+    RobloxName.TextColor3 = Color3.fromRGB(255, 255, 255)
+    RobloxName.TextScaled = true
+
+    -- Make the window draggable
     makeDraggable(Window, Panel)
 
-    local function createTab(tabName)
-        local TabButton = Instance.new("TextButton")
-        local TabFrame = Instance.new("Frame")
+    -- Button creation function
+    function EclipseUILib:CreateButton(buttonOptions)
+        local buttonText = buttonOptions.Text or "Button"
+        local callback = buttonOptions.Callback or function() end
 
-        TabButton.Name = tabName
-        TabButton.Parent = LeftSidePanel
-        TabButton.Text = tabName
-        TabButton.Font = Enum.Font.SourceSansBold
-        TabButton.Size = UDim2.new(1, 0, 0, 30)
-        TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-
-        TabFrame.Name = tabName .. "Frame"
-        TabFrame.Parent = MainPanel
-        TabFrame.Size = UDim2.new(1, 0, 1, 0)
-        TabFrame.Visible = false
-
-        TabButton.MouseButton1Click:Connect(function()
-            for _, v in pairs(MainPanel:GetChildren()) do
-                v.Visible = false
-            end
-            TabFrame.Visible = true
-        end)
-
-        TabsContainer[tabName] = TabFrame
-        return TabFrame
-    end
-
-    local function createButton(tabFrame, buttonName, callback)
         local Button = Instance.new("TextButton")
-
-        Button.Name = buttonName
-        Button.Parent = tabFrame
-        Button.Text = buttonName
+        Button.Parent = MainPanel
+        Button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        Button.BackgroundTransparency = 0.7
+        Button.Size = UDim2.new(0.8, 0, 0.1, 0)
+        Button.Position = UDim2.new(0.1, 0, (#MainPanel:GetChildren() - 1) * 0.12, 0)
         Button.Font = Enum.Font.SourceSansBold
-        Button.Size = UDim2.new(1, 0, 0, 30)
-        Button.Position = UDim2.new(0, 0, #tabFrame:GetChildren() * 0.1, 0)
-        Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Button.Text = buttonText
+        Button.TextColor3 = Color3.fromRGB(0, 0, 0)
+        Button.TextScaled = true
         Button.MouseButton1Click:Connect(callback)
     end
 
-    return {
-        AddTab = function(self, tabOptions)
-            local tabFrame = createTab(tabOptions.Name)
-            return {
-                AddButton = function(_, buttonOptions)
-                    createButton(tabFrame, buttonOptions.Name, buttonOptions.Callback)
-                end
-            }
-        end
-    }
+    return EclipseUILib
 end
 
 return EclipseUILib
