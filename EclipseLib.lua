@@ -1,5 +1,4 @@
 -- EclipseLib.lua
-
 local EclipseLib = {}
 
 -- Initialize the Elements table if it doesn't exist
@@ -82,7 +81,7 @@ function EclipseLib:MakeWindow(config)
         BorderSizePixel = 0,
         AnchorPoint = Vector2.new(0.5, 0.5),
         Name = "Window",
-        Parent = screenGui,  -- Parent the window to the screenGui
+        Parent = screenGui,
     })
 
     -- Create the panel that holds the title and close button
@@ -157,6 +156,9 @@ function EclipseLib:MakeWindow(config)
 
     -- Store the window element in the library
     EclipseLib.Elements.Window = Window
+
+    -- Add the additional UI elements such as LeftSidePanel, TabButton, etc.
+    -- (Add code to create the left side panel, tabs, main buttons, and other elements here...)
 
     -- Return the window object
     return Window
