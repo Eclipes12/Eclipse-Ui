@@ -179,5 +179,3 @@ function EclipseUILib:MakeWindow(settings)
 
     return tabs
 end
-
-return EclipseUILib
