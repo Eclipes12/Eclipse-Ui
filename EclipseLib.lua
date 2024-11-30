@@ -47,6 +47,7 @@ function EclipseUILib:MakeWindow(options)
     local CloseButton = Instance.new("TextButton")
     local LeftSidePanel = Instance.new("Frame")
     local MainPanel = Instance.new("Frame")
+    local TabsContainer = {}
 
     -- Assign options
     local windowTitle = options.Name or "Window"
@@ -145,12 +146,54 @@ function EclipseUILib:MakeWindow(options)
 
     makeDraggable(Window, Panel)
 
+    local function createTab(tabName)
+        local TabButton = Instance.new("TextButton")
+        local TabFrame = Instance.new("Frame")
+
+        TabButton.Name = tabName
+        TabButton.Parent = LeftSidePanel
+        TabButton.Text = tabName
+        TabButton.Font = Enum.Font.SourceSansBold
+        TabButton.Size = UDim2.new(1, 0, 0, 30)
+        TabButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+
+        TabFrame.Name = tabName .. "Frame"
+        TabFrame.Parent = MainPanel
+        TabFrame.Size = UDim2.new(1, 0, 1, 0)
+        TabFrame.Visible = false
+
+        TabButton.MouseButton1Click:Connect(function()
+            for _, v in pairs(MainPanel:GetChildren()) do
+                v.Visible = false
+            end
+            TabFrame.Visible = true
+        end)
+
+        TabsContainer[tabName] = TabFrame
+        return TabFrame
+    end
+
+    local function createButton(tabFrame, buttonName, callback)
+        local Button = Instance.new("TextButton")
+
+        Button.Name = buttonName
+        Button.Parent = tabFrame
+        Button.Text = buttonName
+        Button.Font = Enum.Font.SourceSansBold
+        Button.Size = UDim2.new(1, 0, 0, 30)
+        Button.Position = UDim2.new(0, 0, #tabFrame:GetChildren() * 0.1, 0)
+        Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+        Button.MouseButton1Click:Connect(callback)
+    end
+
     return {
         AddTab = function(self, tabOptions)
-            -- Code for tabs here
-        end,
-        AddButton = function(self, buttonOptions)
-            -- Code for buttons here
+            local tabFrame = createTab(tabOptions.Name)
+            return {
+                AddButton = function(_, buttonOptions)
+                    createButton(tabFrame, buttonOptions.Name, buttonOptions.Callback)
+                end
+            }
         end
     }
 end
