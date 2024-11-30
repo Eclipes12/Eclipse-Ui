@@ -1,181 +1,166 @@
-local EclipseUILib = {}
-EclipseUILib.Elements = {}
+-- EclipseLib.lua
 
--- Services
-local Players = game:GetService("Players")
+local EclipseLib = {}
 
--- Utility function to create instances
-local function createInstance(className, properties)
-    local instance = Instance.new(className)
+-- Initialize the Elements table if it doesn't exist
+EclipseLib.Elements = EclipseLib.Elements or {}
+
+-- Helper function to create UI elements
+function EclipseLib:CreateElement(className, properties)
+    local element = Instance.new(className)
     for property, value in pairs(properties) do
-        instance[property] = value
+        element[property] = value
     end
-    return instance
+    return element
 end
 
--- Function to create the main window
-function EclipseUILib:MakeWindow(settings)
-    assert(settings and type(settings) == "table", "Settings must be provided for the window.")
-
-    -- Defaults
-    local name = settings.Name or "Eclipse UI"
-    local hidePremium = settings.HidePremium or false
-    local saveConfig = settings.SaveConfig or false
-    local configFolder = settings.ConfigFolder or "EclipseConfig"
-    local introEnabled = settings.IntroEnabled or false
-    local introText = settings.IntroText or "Welcome to Eclipse UI"
-    local introIcon = settings.IntroIcon or "rbxassetid://4483345998"
-    local icon = settings.Icon or "rbxassetid://4483345998"
-    local closeCallback = settings.CloseCallback or function() end
-
-    -- ScreenGui
-    local screenGui = createInstance("ScreenGui", {
-        Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui"),
-        ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-    })
-
-    -- Intro Panel (if enabled)
-    if introEnabled then
-        local introPanel = createInstance("Frame", {
-            Parent = screenGui,
-            BackgroundColor3 = Color3.fromRGB(0, 0, 0),
-            BackgroundTransparency = 0.5,
-            Size = UDim2.new(0, 300, 0, 200),
-            Position = UDim2.new(0.5, -150, 0.5, -100),
-            AnchorPoint = Vector2.new(0.5, 0.5),
-        })
-
-        createInstance("TextLabel", {
-            Parent = introPanel,
-            Text = introText,
-            Font = Enum.Font.SourceSansBold,
-            TextScaled = true,
-            TextColor3 = Color3.fromRGB(255, 255, 255),
-            Size = UDim2.new(1, 0, 0.6, 0),
-        })
-
-        createInstance("ImageLabel", {
-            Parent = introPanel,
-            Image = introIcon,
-            BackgroundTransparency = 1,
-            Size = UDim2.new(0.3, 0, 0.3, 0),
-            Position = UDim2.new(0.35, 0, 0.6, 0),
-        })
-
-        task.wait(2) -- Simulate intro delay
-        introPanel:Destroy()
+-- MakeWindow function to create the main window
+function EclipseLib:MakeWindow(config)
+    -- Ensure there's a ScreenGui to parent the window to
+    local screenGui = game.Players.LocalPlayer.PlayerGui:FindFirstChild("ScreenGui")
+    if not screenGui then
+        screenGui = Instance.new("ScreenGui")
+        screenGui.Name = "ScreenGui"
+        screenGui.Parent = game.Players.LocalPlayer.PlayerGui
     end
 
-    -- Main Window
-    local window = createInstance("Frame", {
-        Parent = screenGui,
-        BackgroundColor3 = Color3.fromRGB(29, 40, 255),
-        BackgroundTransparency = 0.7,
-        Size = UDim2.new(0, 500, 0, 400),
-        Position = UDim2.new(0.5, -250, 0.5, -200),
+    -- Intro Panel (Loading screen with text and icon)
+    local IntroPanel = self:CreateElement("Frame", {
+        Size = UDim2.new(0, 600, 0, 100),
+        Position = UDim2.new(0.5, -300, 0.5, -50),
+        BackgroundColor3 = Color3.fromRGB(30, 30, 30),
+        BorderSizePixel = 0,
         AnchorPoint = Vector2.new(0.5, 0.5),
+        Parent = screenGui,
     })
 
-    -- Title Bar
-    local titleBar = createInstance("Frame", {
-        Parent = window,
-        BackgroundColor3 = Color3.fromRGB(29, 40, 255),
-        BackgroundTransparency = 0.8,
-        Size = UDim2.new(1, 0, 0.1, 0),
-    })
-
-    createInstance("TextLabel", {
-        Parent = titleBar,
-        Text = name,
-        Font = Enum.Font.SourceSansBold,
-        TextScaled = true,
-        TextColor3 = Color3.fromRGB(255, 255, 255),
-        Size = UDim2.new(0.8, 0, 1, 0),
-    })
-
-    local closeButton = createInstance("TextButton", {
-        Parent = titleBar,
-        Text = "X",
-        Font = Enum.Font.SourceSansBold,
-        TextColor3 = Color3.fromRGB(255, 255, 255),
+    -- Icon for the Intro Panel
+    local Icon = self:CreateElement("ImageLabel", {
+        Size = UDim2.new(0, 50, 0, 50),
+        Position = UDim2.new(0, 10, 0, 25),
+        Image = config.IntroIcon or "rbxassetid://4483345998", -- Default Icon if not provided
         BackgroundTransparency = 1,
-        Size = UDim2.new(0.2, 0, 1, 0),
-        Position = UDim2.new(0.8, 0, 0, 0),
+        Parent = IntroPanel,
     })
 
-    closeButton.MouseButton1Click:Connect(function()
-        screenGui:Destroy()
-        closeCallback()
+    -- Intro Text Label
+    local IntroTextLabel = self:CreateElement("TextLabel", {
+        Text = config.IntroText,
+        Size = UDim2.new(0, 500, 0, 50),
+        Position = UDim2.new(0, 70, 0, 25),
+        BackgroundTransparency = 1,
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        TextSize = 24,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextYAlignment = Enum.TextYAlignment.Center,
+        Font = Enum.Font.Gotham,
+        Parent = IntroPanel,
+    })
+
+    -- Animate intro text letter by letter
+    local function AnimateText()
+        local letters = config.IntroText:split("")
+        local index = 1
+        IntroTextLabel.Text = ""
+        while index <= #letters do
+            IntroTextLabel.Text = IntroTextLabel.Text .. letters[index]
+            index = index + 1
+            wait(0.1)  -- Adjust speed of animation
+        end
+    end
+
+    -- Start the animation and remove the intro screen after 5 seconds
+    AnimateText()
+    wait(5)
+    IntroPanel:Destroy()
+
+    -- Create the main window frame
+    local Window = self:CreateElement("Frame", {
+        Size = UDim2.new(0, 600, 0, 400),
+        Position = UDim2.new(0.5, -300, 0.5, -200),
+        BackgroundColor3 = Color3.fromRGB(30, 30, 30),
+        BorderSizePixel = 0,
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Name = "Window",
+        Parent = screenGui,  -- Parent the window to the screenGui
+    })
+
+    -- Create the panel that holds the title and close button
+    local Panel = self:CreateElement("Frame", {
+        Size = UDim2.new(1, 0, 0, 50),
+        BackgroundColor3 = Color3.fromRGB(40, 40, 40),
+        BorderSizePixel = 0,
+        Parent = Window,
+    })
+
+    -- Title label on the left side
+    local Title = self:CreateElement("TextLabel", {
+        Text = config.Name,
+        Size = UDim2.new(0, 500, 0, 50),
+        Position = UDim2.new(0, 10, 0, 0),
+        BackgroundTransparency = 1,
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        TextSize = 24,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Font = Enum.Font.GothamBold,
+        Parent = Panel,
+    })
+
+    -- Close button (X) on the right side
+    local CloseButton = self:CreateElement("TextButton", {
+        Size = UDim2.new(0, 50, 0, 50),
+        Position = UDim2.new(1, -60, 0, 0),
+        Text = "X",
+        BackgroundColor3 = Color3.fromRGB(200, 0, 0),
+        TextColor3 = Color3.fromRGB(255, 255, 255),
+        TextSize = 18,
+        BorderSizePixel = 0,
+        Parent = Panel,
+    })
+
+    -- Callback for closing the window
+    CloseButton.MouseButton1Click:Connect(function()
+        if config.CloseCallback then
+            config.CloseCallback()
+        end
+        Window:Destroy()  -- Close the window when clicked
     end)
 
-    -- Tabs Panel
-    local tabsPanel = createInstance("Frame", {
-        Parent = window,
-        BackgroundColor3 = Color3.fromRGB(29, 40, 255),
-        BackgroundTransparency = 0.7,
-        Size = UDim2.new(0.3, 0, 0.9, 0),
-        Position = UDim2.new(0, 0, 0.1, 0),
-    })
+    -- Dragging functionality
+    local dragging = false
+    local dragInput, dragStart, startPos
 
-    local tabs = {}
-
-    -- Function to create a new tab
-    function tabs:MakeTab(tabSettings)
-        tabSettings = tabSettings or {}
-        local tabName = tabSettings.Name or "Tab"
-        local tabIcon = tabSettings.Icon or ""
-        local premiumOnly = tabSettings.PremiumOnly or false
-
-        local tabButton = createInstance("TextButton", {
-            Parent = tabsPanel,
-            Text = tabName,
-            Font = Enum.Font.SourceSansBold,
-            TextColor3 = Color3.fromRGB(0, 0, 0),
-            BackgroundTransparency = 0.7,
-            Size = UDim2.new(1, 0, 0.1, 0),
-            LayoutOrder = #tabsPanel:GetChildren(),
-        })
-
-        local contentFrame = createInstance("Frame", {
-            Parent = window,
-            BackgroundColor3 = Color3.fromRGB(29, 40, 255),
-            BackgroundTransparency = 0.7,
-            Size = UDim2.new(0.7, 0, 0.9, 0),
-            Position = UDim2.new(0.3, 0, 0.1, 0),
-            Visible = false,
-        })
-
-        tabButton.MouseButton1Click:Connect(function()
-            for _, child in pairs(window:GetChildren()) do
-                if child:IsA("Frame") and child ~= tabsPanel and child ~= titleBar then
-                    child.Visible = false
-                end
-            end
-            contentFrame.Visible = true
-        end)
-
-        local buttons = {}
-
-        function buttons:AddButton(buttonSettings)
-            buttonSettings = buttonSettings or {}
-            local buttonName = buttonSettings.Name or "Button"
-            local buttonCallback = buttonSettings.Callback or function() end
-
-            local button = createInstance("TextButton", {
-                Parent = contentFrame,
-                Text = buttonName,
-                Font = Enum.Font.SourceSansBold,
-                TextColor3 = Color3.fromRGB(0, 0, 0),
-                BackgroundTransparency = 0.7,
-                Size = UDim2.new(0.9, 0, 0.1, 0),
-                Position = UDim2.new(0.05, 0, #contentFrame:GetChildren() * 0.1, 0),
-            })
-
-            button.MouseButton1Click:Connect(buttonCallback)
+    -- When the user clicks the title panel, start the dragging
+    Panel.InputBegan:Connect(function(input, gameProcessed)
+        if gameProcessed then return end
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            dragStart = input.Position
+            startPos = Window.Position
         end
+    end)
 
-        return buttons
-    end
+    -- When the user moves the mouse, move the window
+    Panel.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - dragStart
+            Window.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
 
-    return tabs
+    -- When the user releases the mouse button, stop dragging
+    Panel.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
+    end)
+
+    -- Store the window element in the library
+    EclipseLib.Elements.Window = Window
+
+    -- Return the window object
+    return Window
 end
+
+-- Return the EclipseLib object to be used by the loadstring
+return EclipseLib
