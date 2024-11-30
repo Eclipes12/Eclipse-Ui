@@ -27,18 +27,11 @@ function EclipseLib:MakeWindow(config)
     -- Intro Panel (Loading screen with text and icon)
     local IntroPanel = self:CreateElement("Frame", {
         Size = UDim2.new(0, 600, 0, 100),
-        Position = UDim2.new(0.5, -300, 0.5, -50), -- Adjusted to move a little more to the right
+        Position = UDim2.new(0.5, -300, 0.5, -50),
         BackgroundColor3 = Color3.fromRGB(30, 30, 30),
         BorderSizePixel = 0,
         AnchorPoint = Vector2.new(0.5, 0.5),
-        BackgroundTransparency = 0.5, -- Set background transparency
         Parent = screenGui,
-    })
-
-    -- Add rounded corners to the IntroPanel
-    local introCorner = self:CreateElement("UICorner", {
-        CornerRadius = UDim.new(0, 11),
-        Parent = IntroPanel,
     })
 
     -- Icon for the Intro Panel
@@ -54,11 +47,11 @@ function EclipseLib:MakeWindow(config)
     local IntroTextLabel = self:CreateElement("TextLabel", {
         Text = config.IntroText,
         Size = UDim2.new(0, 500, 0, 50),
-        Position = UDim2.new(0.5, -250, 0.5, -25), -- Centered in the middle of the screen
+        Position = UDim2.new(0, 70, 0, 25),
         BackgroundTransparency = 1,
         TextColor3 = Color3.fromRGB(255, 255, 255),
         TextSize = 24,
-        TextXAlignment = Enum.TextXAlignment.Center,
+        TextXAlignment = Enum.TextXAlignment.Left,
         TextYAlignment = Enum.TextYAlignment.Center,
         Font = Enum.Font.Gotham,
         Parent = IntroPanel,
@@ -83,19 +76,13 @@ function EclipseLib:MakeWindow(config)
 
     -- Create the main window frame
     local Window = self:CreateElement("Frame", {
-        Size = UDim2.new(0, 800, 0, 500),
-        Position = UDim2.new(0.5, -400, 0.5, -250),
+        Size = UDim2.new(0, 600, 0, 400),
+        Position = UDim2.new(0.5, -300, 0.5, -200),
         BackgroundColor3 = Color3.fromRGB(30, 30, 30),
         BorderSizePixel = 0,
         AnchorPoint = Vector2.new(0.5, 0.5),
-        BackgroundTransparency = 0.3, -- Make the window semi-transparent
+        Name = "Window",
         Parent = screenGui,  -- Parent the window to the screenGui
-    })
-
-    -- Add rounded corners to the window
-    local windowCorner = self:CreateElement("UICorner", {
-        CornerRadius = UDim.new(0, 11),
-        Parent = Window,
     })
 
     -- Create the panel that holds the title and close button
@@ -168,48 +155,8 @@ function EclipseLib:MakeWindow(config)
         end
     end)
 
-    -- Create the sidebar to hold tabs
-    local Sidebar = self:CreateElement("Frame", {
-        Size = UDim2.new(0, 200, 1, 0),
-        Position = UDim2.new(0, 0, 0, 0),
-        BackgroundColor3 = Color3.fromRGB(40, 40, 40),
-        BorderSizePixel = 0,
-        Parent = Window,
-    })
-
-    -- Add rounded corners to the Sidebar
-    local sidebarCorner = self:CreateElement("UICorner", {
-        CornerRadius = UDim.new(0, 11),
-        Parent = Sidebar,
-    })
-
-    -- Store the sidebar element
-    EclipseLib.Elements.Sidebar = Sidebar
-
-    -- Conditionally create the tab only if it is provided in config
-    if config.Tab then
-        local Tab = self:CreateElement("Frame", {
-            Size = UDim2.new(1, 0, 0, 50),
-            Position = UDim2.new(0, 0, 0, 50),
-            BackgroundColor3 = Color3.fromRGB(60, 60, 60),
-            BorderSizePixel = 0,
-            Parent = Sidebar,
-        })
-
-        local TabLabel = self:CreateElement("TextLabel", {
-            Text = config.Tab.Name,
-            Size = UDim2.new(1, 0, 1, 0),
-            BackgroundTransparency = 1,
-            TextColor3 = Color3.fromRGB(255, 255, 255),
-            TextSize = 20,
-            TextXAlignment = Enum.TextXAlignment.Center,
-            Font = Enum.Font.Gotham,
-            Parent = Tab,
-        })
-
-        -- Store the tab element
-        EclipseLib.Elements.MainTab = Tab
-    end
+    -- Store the window element in the library
+    EclipseLib.Elements.Window = Window
 
     -- Return the window object
     return Window
@@ -217,3 +164,14 @@ end
 
 -- Return the EclipseLib object to be used by the loadstring
 return EclipseLib
+
+MAKE THE INTRO TEXT IN THE MIDDLE SCREEN AND MAKE IT HAVE A TRANSPERNTY BACKGROUND FOR THE FRAME AND FOR THE WINDOW MAKE EVERYTHING FIT  and make it have a ui conner with 0, 11 on everhting and make the widnow kinda tranperty and add a lifesidebar that will hold the tabs witch will be these
+
+local Tab = Window:MakeTab({
+    Name = "Main Tab",
+    Icon = "rbxassetid://4483345998",  -- Change to a valid image asset ID
+    PremiumOnly = false
+})
+
+-- Store the tab element
+EclipseLib.Elements.MainTab = Tab
